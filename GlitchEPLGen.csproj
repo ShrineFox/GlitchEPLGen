@@ -9,8 +9,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\GFD-Studio\GFDLibrary\GFDLibrary.NET5.csproj" />
-    <ProjectReference Include="..\..\GFD-Studio\GFDStudio\GFDStudio.csproj" />
+    <ProjectReference Include="..\GFD-Studio\GFDLibrary\GFDLibrary.NET5.csproj" />
+    <ProjectReference Include="..\GFD-Studio\GFDStudio\GFDStudio.csproj" />
   </ItemGroup>
 
   <ItemGroup>
