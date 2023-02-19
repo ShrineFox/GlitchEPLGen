@@ -133,28 +133,20 @@ namespace GlitchEPLGen
 
             using (WaitForFile(outputGMD)) { };
 
-            if (size == 5648)
+            Console.WriteLine($"Generating .GMD: {outputGMD}");
+            ModelPack model = Resource.Load<ModelPack>("./GMD/1x4.GMD");
+            model.Textures.First().Value.Name = Path.GetFileName(dds);
+            model.Textures.First().Value.Data = File.ReadAllBytes(dds);
+            model.Materials.First().Value.Name = Path.GetFileNameWithoutExtension(dds);
+            model.Materials.First().Value.DiffuseMap.Name = Path.GetFileName(dds);
+            if (floorEPL)
             {
-                // 1 x 4 Sprite
-                Console.WriteLine($"Generating .GMD: {outputGMD}");
-                ModelPack model = Resource.Load<ModelPack>("./GMD/1x4.GMD");
-                model.Textures.First().Value.Name = Path.GetFileName(dds);
-                model.Textures.First().Value.Data = File.ReadAllBytes(dds);
-                model.Materials.First().Value.Name = Path.GetFileNameWithoutExtension(dds);
-                model.Materials.First().Value.DiffuseMap.Name = Path.GetFileName(dds);
-                if (floorEPL)
-                {
-                    model.Model.Nodes.Single(x => x.Name.Equals("SMWSpriteMesh1x4")).Translation = new System.Numerics.Vector3(0, 0.5f, 0);
-                    model.Model.Nodes.Single(x => x.Name.Equals("SMWSpriteMesh1x4")).Rotation = new System.Numerics.Quaternion(0f, 1f, 0f, 0f);
-                }
-                model.Model.Nodes.Single(x => x.Name.Equals("SMWSpriteMesh1x4")).Scale = new System.Numerics.Vector3(modelScale, modelScale, modelScale);
-                model.Model.Nodes.Single(x => x.Name.Equals("SMWSpriteMesh1x4")).Attachments.First(x => x.GetValue().ResourceType.Equals(ResourceType.Mesh)).GetValue<Mesh>().MaterialName = Path.GetFileNameWithoutExtension(dds);
-                model.Save(outputGMD);
+                model.Model.Nodes.Single(x => x.Name.Equals("SMWSpriteMesh1x4")).Translation = new System.Numerics.Vector3(0, 0.5f, 0);
+                model.Model.Nodes.Single(x => x.Name.Equals("SMWSpriteMesh1x4")).Rotation = new System.Numerics.Quaternion(0f, 1f, 0f, 0f);
             }
-            else
-            {
-                throw new Exception();
-            }
+            model.Model.Nodes.Single(x => x.Name.Equals("SMWSpriteMesh1x4")).Scale = new System.Numerics.Vector3(modelScale, modelScale, modelScale);
+            model.Model.Nodes.Single(x => x.Name.Equals("SMWSpriteMesh1x4")).Attachments.First(x => x.GetValue().ResourceType.Equals(ResourceType.Mesh)).GetValue<Mesh>().MaterialName = Path.GetFileNameWithoutExtension(dds);
+            model.Save(outputGMD);
 
             if (File.Exists(outputGMD))
             {
