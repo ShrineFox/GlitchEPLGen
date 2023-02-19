@@ -9,14 +9,17 @@ using System.Threading.Tasks;
 using GFDStudio;
 using GFDLibrary;
 using GFDLibrary.Models;
+using OpenTK;
 
 namespace GlitchEPLGen
 {
     class Program
     {
-        public static float effectScale = 10f;
-        public static float modelScale = 0.1f;
+        public static float effectScale = 8f;
+        public static Vector4 effectRotation = new Vector4(0,0,0,1);
+        public static float modelScale = 0.2f;
         public static float particleScale = 1f;
+        public static bool floorEPL = true;
 
         static void Main(string[] args)
         {
@@ -40,41 +43,69 @@ namespace GlitchEPLGen
 
                     for (int i = 0; i < ddsFiles.Count(); i++)
                     {
-                        // Get hashed names
                         string dds = ddsFiles[i];
+                        string nodeName = Path.GetFileNameWithoutExtension(dds);
+                        if (floorEPL)
+                            nodeName += "_floor";
 
                         // Add attachment type
                         writer.Write(Convert.ToUInt32(7));
 
                         writer.Write(File.ReadAllBytes("./EPLParts/epl0"));
 
-                        // Add Effect Scale (X Y Z)
-                        writer.Write(effectScale); writer.Write(effectScale); writer.Write(effectScale);
+                        // Add Effect Rotation
+                        if (floorEPL)
+                        {
+                            writer.Write(-0.7071068f);
+                            writer.Write(0f);
+                            writer.Write(0f);
+                            writer.Write(0.7071068f);
+                        }
+                        else
+                        {
+                            writer.Write(effectRotation.X);
+                            writer.Write(effectRotation.Y);
+                            writer.Write(effectRotation.Z);
+                            writer.Write(effectRotation.W);
+                        }
+
+                        // Add Effect Scale
+                        writer.Write(effectScale);
+                        writer.Write(effectScale);
+                        writer.Write(effectScale);
 
                         writer.Write(File.ReadAllBytes("./EPLParts/epl1"));
 
                         // Add Node Name
-                        WriteName(writer, Path.GetFileNameWithoutExtension(dds));
+                        WriteName(writer, nodeName);
 
                         writer.Write(File.ReadAllBytes("./EPLParts/epl2"));
 
                         // Add Node Name Again
-                        WriteName(writer, Path.GetFileNameWithoutExtension(dds));
+                        WriteName(writer, nodeName);
 
                         writer.Write(File.ReadAllBytes("./EPLParts/epl3"));
 
                         // Write Angle Seed
                         writer.Write(Convert.ToUInt32(i));
 
-                        writer.Write(File.ReadAllBytes("./EPLParts/epl4"));
+                        // Spawner Angles
+                        if (floorEPL)
+                            writer.Write(File.ReadAllBytes("./EPLParts/epl4f"));
+                        else
+                            writer.Write(File.ReadAllBytes("./EPLParts/epl4"));
 
                         // Add Particle Scale
                         writer.Write(particleScale);
 
-                        writer.Write(File.ReadAllBytes("./EPLParts/epl5"));
+                        // Explosion Parameters
+                        if (floorEPL)
+                            writer.Write(File.ReadAllBytes("./EPLParts/epl5f"));
+                        else
+                            writer.Write(File.ReadAllBytes("./EPLParts/epl5"));
 
                         // Add Node Name Again
-                        WriteName(writer, Path.GetFileNameWithoutExtension(dds));
+                        WriteName(writer, nodeName);
 
                         // Field18
                         writer.Write(new byte[] { 0x00, 0x00, 0x00, 0x02 });
@@ -82,7 +113,7 @@ namespace GlitchEPLGen
                         writer.Write(new byte[] { 0x00, 0x00, 0x00, 0x02 });
                         
                         // Write GMD Size and GMD Data
-                        WriteGMD(writer, dds);
+                        WriteGMD(writer, dds, nodeName);
 
                         writer.Write(File.ReadAllBytes("./EPLParts/epl6"));
                     }
@@ -92,10 +123,10 @@ namespace GlitchEPLGen
             Console.WriteLine($"Done Generating .EPL data: {outputFile}");
         }
 
-        private static void WriteGMD(EndianBinaryWriter writer, string dds)
+        private static void WriteGMD(EndianBinaryWriter writer, string dds, string nodeName)
         {
             var size = new FileInfo(dds).Length;
-            string outputGMD = Path.Combine("./output", Path.GetFileNameWithoutExtension(dds) + ".GMD");
+            string outputGMD = Path.Combine("./output", nodeName + ".GMD");
 
             if (File.Exists(outputGMD))
                 File.Delete(outputGMD);
@@ -111,6 +142,11 @@ namespace GlitchEPLGen
                 model.Textures.First().Value.Data = File.ReadAllBytes(dds);
                 model.Materials.First().Value.Name = Path.GetFileNameWithoutExtension(dds);
                 model.Materials.First().Value.DiffuseMap.Name = Path.GetFileName(dds);
+                if (floorEPL)
+                {
+                    model.Model.Nodes.Single(x => x.Name.Equals("SMWSpriteMesh1x4")).Translation = new System.Numerics.Vector3(0, 0.5f, 0);
+                    model.Model.Nodes.Single(x => x.Name.Equals("SMWSpriteMesh1x4")).Rotation = new System.Numerics.Quaternion(0f, 1f, 0f, 0f);
+                }
                 model.Model.Nodes.Single(x => x.Name.Equals("SMWSpriteMesh1x4")).Scale = new System.Numerics.Vector3(modelScale, modelScale, modelScale);
                 model.Model.Nodes.Single(x => x.Name.Equals("SMWSpriteMesh1x4")).Attachments.First(x => x.GetValue().ResourceType.Equals(ResourceType.Mesh)).GetValue<Mesh>().MaterialName = Path.GetFileNameWithoutExtension(dds);
                 model.Save(outputGMD);

@@ -2,7 +2,7 @@
   "profiles": {
     "GlitchEPLGen": {
       "commandName": "Project",
-      "commandLineArgs": "C:\\Users\\Ryan\\Documents\\GitHub\\GlitchEPLGen\\GlitchEPLGen\\bin\\Debug\\test"
+      "commandLineArgs": "C:\Users\Ryan\Documents\GitHub\GlitchEPLGen\bin\Debug\test"
     }
   }
 }
